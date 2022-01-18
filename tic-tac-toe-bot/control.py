@@ -3,7 +3,6 @@ import random
 import matplotlib.pyplot as plt
 import time
 import numpy as np
-from sklearn.kernel_approximation import RBFSampler
 from math import sqrt
 import tkinter as tk
 from functools import partial
@@ -63,9 +62,7 @@ def train(first_player,steps):
         curr = player1
     
         s = Board.reset()
-        
-        
-        
+
         print(_)
         
         rms = {player1:0,player2:0}
@@ -128,7 +125,7 @@ def train(first_player,steps):
 
                 states[curr] = []
 
-train(player1,steps)
+train(player1,1)
 
 
 Board.reset()
@@ -153,8 +150,13 @@ def button_pressed(button_key):
     
     player_won = Board.is_terminal(Board.board)
    
-    
-   
+    r = Board.reward(player1.symbol)
+    s_prev,a_prev = prev_states[0],prev_states[1]
+    s2_hash = hash_board_r(Board.current_state())
+    if s2_hash not in player1.Q:
+        player1.Q[s2_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
+    a2 = random.choice([k for k,v in curr.Q[s2_hash].items() if v == max(curr.Q[s2_hash].values())])
+    player1.Q[s_prev][a_prev]+= alpha*(r+gamma*curr.Q[s2_hash][a2]- curr.Q[s_prev][a_prev])
     if player_won == 'X':
 
         print("BOT WON")
@@ -167,7 +169,7 @@ def button_pressed(button_key):
 
                 player1.Q[hash_s] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
         a = epsilon_greedy(player1.Q,hash_s,player1.epsilon)
-        prev_states = [Board.current_state(),a]
+        prev_states = [hash_board_r(Board.current_state()),a]
         Board.place(player1.symbol,a)
         buttons[a]['text'] = player1.symbol
         
@@ -182,7 +184,7 @@ def button_pressed(button_key):
         if player1.Q.get(s_hash,None) is None:
                 player1.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
         a = epsilon_greedy(player1.Q,s_hash,player1.epsilon)
-        prev_states = [Board.current_state(),a]
+        prev_states = [hash_board_r(Board.current_state()),a]
         Board.place(player1.symbol,a)
         buttons[a]['text'] = player1.symbol
         
@@ -196,7 +198,7 @@ def button_pressed(button_key):
         if player1.Q.get(s_hash,None) is None:
                 curr.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
         a = epsilon_greedy(player1.Q,s_hash,player1.epsilon)
-        prev_states = [Board.current_state(),a]
+        prev_states = [hash_board_r(Board.current_state()),a]
         Board.place(player1.symbol,a)
         buttons[a]['text'] = player1.symbol
         
@@ -208,12 +210,17 @@ def button_pressed(button_key):
         if player1.Q.get(s_hash,None) is None:
                 player1.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
         a = epsilon_greedy(player1.Q,s_hash,player1.epsilon)
-        
+        prev_states = [hash_board_r(Board.current_state()),a]
         buttons[a]['text'] = player1.symbol
         Board.place(player1.symbol,a)
         r = Board.reward(player1.symbol)
         player_won = Board.is_terminal(Board.current_state())
-        
+        if player_won:
+            s2_hash = hash_board_r(Board.current_state())
+            if s2_hash not in player1.Q:
+                player1.Q[s2_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
+            a2 = random.choice([k for k,v in curr.Q[s2_hash].items() if v == max(curr.Q[s2_hash].values())])
+            player1.Q[s_prev][a_prev]+= alpha*(r+gamma*curr.Q[s2_hash][a2]- curr.Q[s_prev][a_prev])
         if player_won:
             target = r  
            
@@ -230,7 +237,7 @@ def button_pressed(button_key):
                 
                 player1.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
             a = epsilon_greedy(player1.Q,s_hash,player1.epsilon)
-            prev_states = [Board.current_state(),a]
+            prev_states = [hash_board_r(Board.current_state()),a]
             Board.place(player1.symbol,a)
             buttons[a]['text'] = player1.symbol
             
@@ -244,7 +251,7 @@ def button_pressed(button_key):
             if player1.Q.get(s_hash,None) is None:
                 player1.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
             a = epsilon_greedy(player1.Q,s_hash,player1.epsilon)    
-            prev_states = [Board.current_state(),a]    
+            prev_states = [hash_board_r(Board.current_state()),a]    
             Board.place(player1.symbol,a)
             buttons[a]['text'] = player1.symbol
         
@@ -259,7 +266,7 @@ def button_pressed(button_key):
             if player1.Q.get(s_hash,None) is None:
                 player1.Q[s_hash] = {(0,0):0,(0,1):0,(0,2):0,(1,0):0,(1,1):0,(1,2):0,(2,0):0,(2,1):0,(2,2):0}
             a = epsilon_greedy(player1.Q,s_hash,player1.epsilon) 
-            prev_states = [Board.current_state(),a]
+            prev_states = [hash_board_r(Board.current_state()),a]
             Board.place(player1.symbol,a)
             buttons[a]['text'] = player1.symbol
         
@@ -285,11 +292,11 @@ six.grid(row=1,column=2)
 seven.grid(row=2,column=0)
 eight.grid(row=2,column=1)
 nine.grid(row=2,column=2)
-s = hash_board(Board.current_state())
+
 s_hash  = hash_board_r(Board.current_state())
 
 a = epsilon_greedy(curr.Q,s_hash,curr.epsilon)
-prev_states = [s,a]
+prev_states = [s_hash,a]
 Board.place(curr.symbol,a)
 buttons[a]['text'] = curr.symbol
 
