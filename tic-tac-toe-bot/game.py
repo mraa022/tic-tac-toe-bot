@@ -10,7 +10,9 @@ class board:
         self.num_places = 0 # num of times a symbol was placed (used to check for draws efficiently)
     def reward(self,symbol):
         player_won = self.is_terminal(self.board)
+       
         if player_won == symbol:
+            
             reward = 1
         elif (player_won=='X' and symbol=='O') or (symbol=='X' and player_won=='O'):
             reward = -1
@@ -72,7 +74,7 @@ class board:
         else:
             return False
     def game_over(self):
-        return self.is_terminal(self.board)==False
+        return self.is_terminal(self.board) != False
     def draw_board(self):
         deconde_int = {1:'X',-1:'O',0:''}
         temp = [[] for _ in range(self.rows)]
